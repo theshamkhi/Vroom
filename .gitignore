@@ -1,4 +1,3 @@
-HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -31,3 +30,103 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Eclipse
+.settings/
+
+# IntelliJ IDEA
+.idea/
+out/
+
+# VS Code
+*.code-workspace
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+.directory
+
+# Logs
+*.log
+logs/
+spring.log
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.bak
+*.orig
+
+# Application specific
+application-local.properties
+application-dev.properties
+application-prod.properties
+!application/src/main/resources/application-*.properties
+
+# Database
+*.db
+*.sqlite
+
+# Media files (videos, images) - only for local development
+uploads/
+videos/
+thumbnails/
+
+# Compiled class files
+*.class
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# JVM Crash Logs
+hs_err_pid*
+
+# Liquibase
+liquibase.properties
+!application/src/main/resources/liquibase.properties
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# H2 Database
+*.h2.db
+*.trace.db
+
+# Spring Boot
+spring-boot-devtools.properties
+
+# AWS
+.aws/
+
+# Secrets
+secrets/
+*.pem
+*.key
+*.crt

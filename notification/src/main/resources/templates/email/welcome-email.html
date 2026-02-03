@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Vroom</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 0;
+        }
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 0;
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 20px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .message {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+        .features {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+        .features h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            min-width: 30px;
+        }
+        .feature-content h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        .feature-content p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .button-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 30px;
+            font-size: 14px;
+            color: #777;
+        }
+        .footer a {
+            color: #4facfe;
+            text-decoration: none;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: #4facfe;
+            color: white;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎉 Welcome to <span th:text="${appName}">Vroom</span>!</h1>
+        <p>Your journey to driving excellence starts here</p>
+    </div>
+
+    <div class="content">
+        <div class="greeting">
+            Hi <span th:text="${userName}">there</span>!
+            <span class="badge" th:text="${userRole}">STUDENT</span>
+        </div>
+
+        <div class="message">
+            Thank you for joining <strong th:text="${appName}">Vroom</strong>! We're thrilled to have you as part of our community.
+            <br><br>
+            Your account has been successfully created and verified. You're now ready to begin your interactive driving education experience.
+        </div>
+
+        <div class="features">
+            <h2>What you can do now:</h2>
+
+            <div class="feature-item">
+                <div class="feature-icon">🎥</div>
+                <div class="feature-content">
+                    <h3>Interactive Video Scenarios</h3>
+                    <p>Practice real-world driving situations with our interactive video-based learning system</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div class="feature-content">
+                    <h3>Track Your Progress</h3>
+                    <p>Monitor your performance with detailed analytics and personalized feedback</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">🏆</div>
+                <div class="feature-content">
+                    <h3>Earn Badges</h3>
+                    <p>Unlock achievements as you complete scenarios and master driving skills</p>
+                </div>
+            </div>
+
+            <div class="feature-item" th:if="${userRole == 'STUDENT'}">
+                <div class="feature-icon">👨‍🏫</div>
+                <div class="feature-content">
+                    <h3>Connect with Instructors</h3>
+                    <p>Get personalized guidance and assignments from expert driving instructors</p>
+                </div>
+            </div>
+
+            <div class="feature-item" th:if="${userRole == 'INSTRUCTOR'}">
+                <div class="feature-icon">👥</div>
+                <div class="feature-content">
+                    <h3>Manage Students</h3>
+                    <p>Track student progress, assign scenarios, and provide personalized feedback</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="button-container">
+            <a th:href="${loginUrl}" class="cta-button">
+                Get Started Now
+            </a>
+        </div>
+
+        <div class="message" style="font-size: 14px; color: #777; margin-top: 30px;">
+            Need help getting started? Check out our
+            <a href="#" style="color: #4facfe;">Quick Start Guide</a> or
+            <a href="#" style="color: #4facfe;">FAQs</a>.
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>
+            © <span th:text="${year}">2026</span> <span th:text="${appName}">Vroom</span>. All rights reserved.
+        </p>
+        <p>
+            Questions? Contact us at
+            <a href="mailto:support@vroom.com">support@vroom.com</a>
+        </p>
+    </div>
+</div>
+</body>
+</html>

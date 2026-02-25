@@ -8,6 +8,7 @@ import com.vroom.content.model.enums.Theme;
 import com.vroom.content.repository.InteractionPointRepository;
 import com.vroom.content.repository.QuestionRepository;
 import com.vroom.content.repository.ScenarioRepository;
+import com.vroom.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -228,7 +229,7 @@ public class ScenarioServiceImpl implements ScenarioService {
         log.info("Deleting scenario: {}", id);
 
         if (!scenarioRepository.existsById(id)) {
-            throw new RuntimeException("Scenario not found with id: " + id);
+            throw new ResourceNotFoundException("Scenario", "id", id);
         }
 
         // Delete related interaction points and questions

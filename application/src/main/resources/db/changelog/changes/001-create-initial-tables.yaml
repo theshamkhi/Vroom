@@ -1,0 +1,1376 @@
+databaseChangeLog:
+  # ============================================================================
+  # INITIAL DATABASE SCHEMA - All Tables
+  # Version: 1.0.0
+  # Description: Complete database schema for Vroom Driving Education Platform
+  # ============================================================================
+
+  # ----------------------------------------------------------------------------
+  # SECURITY MODULE TABLES
+  # ----------------------------------------------------------------------------
+
+  - changeSet:
+      id: 1-create-users-table
+      author: vroom-team
+      comment: Create base users table for all user types with UUID primary key
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enabled
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: account_non_expired
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: account_non_locked
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: credentials_non_expired
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: phone_number
+                  type: varchar(20)
+              - column:
+                  name: profile_picture_url
+                  type: varchar(255)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_login_at
+                  type: timestamp
+              - column:
+                  name: email_verification_token
+                  type: varchar(100)
+              - column:
+                  name: email_verification_token_expiry
+                  type: timestamp
+              - column:
+                  name: password_reset_token
+                  type: varchar(100)
+              - column:
+                  name: password_reset_token_expiry
+                  type: timestamp
+        - createIndex:
+            indexName: idx_user_email
+            tableName: users
+            columns:
+              - column:
+                  name: email
+        - createIndex:
+            indexName: idx_user_role
+            tableName: users
+            columns:
+              - column:
+                  name: role
+
+  - changeSet:
+      id: 2-create-students-table
+      author: vroom-team
+      comment: Create students table extending users with UUID foreign key
+      changes:
+        - createTable:
+            tableName: students
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    foreignKeyName: fk_student_user
+                    references: users(id)
+                    deleteCascade: true
+              - column:
+                  name: current_level
+                  type: varchar(20)
+              - column:
+                  name: total_points
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: completion_percentage
+                  type: double precision
+                  defaultValueNumeric: 0.0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: scenarios_completed
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: badges_earned
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enrollment_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_completion_date
+                  type: date
+              - column:
+                  name: assigned_instructor_id
+                  type: uuid
+              - column:
+                  name: driving_school
+                  type: varchar(100)
+              - column:
+                  name: permit_number
+                  type: varchar(50)
+              - column:
+                  name: date_of_birth
+                  type: date
+              - column:
+                  name: preferred_language
+                  type: varchar(10)
+                  defaultValue: en
+              - column:
+                  name: instructor_notes
+                  type: varchar(500)
+        - createIndex:
+            indexName: idx_student_level
+            tableName: students
+            columns:
+              - column:
+                  name: current_level
+        - createIndex:
+            indexName: idx_student_instructor
+            tableName: students
+            columns:
+              - column:
+                  name: assigned_instructor_id
+
+  - changeSet:
+      id: 3-create-instructors-table
+      author: vroom-team
+      comment: Create instructors table extending users with UUID foreign key
+      changes:
+        - createTable:
+            tableName: instructors
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    foreignKeyName: fk_instructor_user
+                    references: users(id)
+                    deleteCascade: true
+              - column:
+                  name: license_number
+                  type: varchar(50)
+                  constraints:
+                    unique: true
+              - column:
+                  name: driving_school
+                  type: varchar(100)
+              - column:
+                  name: specialty
+                  type: varchar(100)
+              - column:
+                  name: years_of_experience
+                  type: integer
+              - column:
+                  name: join_date
+                  type: date
+                  constraints:
+                    nullable: false
+              - column:
+                  name: bio
+                  type: varchar(500)
+              - column:
+                  name: average_rating
+                  type: decimal(2,1)
+              - column:
+                  name: total_ratings
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: active_students
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_students_taught
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: available_for_new_students
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: max_students
+                  type: integer
+                  defaultValueNumeric: 20
+                  constraints:
+                    nullable: false
+              - column:
+                  name: availability
+                  type: varchar(200)
+              - column:
+                  name: languages_spoken
+                  type: varchar(100)
+              - column:
+                  name: certifications
+                  type: varchar(300)
+        - createIndex:
+            indexName: idx_instructor_school
+            tableName: instructors
+            columns:
+              - column:
+                  name: driving_school
+        - createIndex:
+            indexName: idx_instructor_specialty
+            tableName: instructors
+            columns:
+              - column:
+                  name: specialty
+
+  # ----------------------------------------------------------------------------
+  # CONTENT MODULE TABLES
+  # ----------------------------------------------------------------------------
+
+  - changeSet:
+      id: 4-create-scenarios-table
+      author: vroom-team
+      comment: Create scenarios table for educational content
+      changes:
+        - createTable:
+            tableName: scenarios
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: difficulty
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: theme
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: duration_seconds
+                  type: integer
+              - column:
+                  name: video_id
+                  type: bigint
+              - column:
+                  name: thumbnail_url
+                  type: varchar(255)
+              - column:
+                  name: total_points
+                  type: integer
+                  defaultValueNumeric: 0
+              - column:
+                  name: pass_score
+                  type: integer
+                  defaultValueNumeric: 70
+              - column:
+                  name: tags
+                  type: varchar(255)
+              - column:
+                  name: prerequisites
+                  type: varchar(255)
+              - column:
+                  name: is_published
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: average_completion_time
+                  type: integer
+              - column:
+                  name: average_score
+                  type: double precision
+              - column:
+                  name: times_completed
+                  type: integer
+                  defaultValueNumeric: 0
+              - column:
+                  name: created_by
+                  type: uuid
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+        - createIndex:
+            indexName: idx_scenario_difficulty
+            tableName: scenarios
+            columns:
+              - column:
+                  name: difficulty
+        - createIndex:
+            indexName: idx_scenario_theme
+            tableName: scenarios
+            columns:
+              - column:
+                  name: theme
+        - createIndex:
+            indexName: idx_scenario_published
+            tableName: scenarios
+            columns:
+              - column:
+                  name: is_published
+
+  - changeSet:
+      id: 5-create-questions-table
+      author: vroom-team
+      comment: Create questions table for scenario interactions
+      changes:
+        - createTable:
+            tableName: questions
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_question_scenario
+                    references: scenarios(id)
+                    deleteCascade: true
+              - column:
+                  name: question_text
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: question_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: points
+                  type: integer
+                  defaultValueNumeric: 10
+              - column:
+                  name: order_index
+                  type: integer
+              - column:
+                  name: hint_text
+                  type: text
+              - column:
+                  name: explanation
+                  type: text
+              - column:
+                  name: image_url
+                  type: varchar(255)
+              - column:
+                  name: created_at
+                  type: timestamp
+        - createIndex:
+            indexName: idx_question_scenario
+            tableName: questions
+            columns:
+              - column:
+                  name: scenario_id
+        - createIndex:
+            indexName: idx_question_type
+            tableName: questions
+            columns:
+              - column:
+                  name: question_type
+
+  - changeSet:
+      id: 6-create-answers-table
+      author: vroom-team
+      comment: Create answers table for question choices
+      changes:
+        - createTable:
+            tableName: answers
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: question_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_answer_question
+                    references: questions(id)
+                    deleteCascade: true
+              - column:
+                  name: answer_text
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_correct
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: order_index
+                  type: integer
+              - column:
+                  name: explanation
+                  type: text
+        - createIndex:
+            indexName: idx_answer_question
+            tableName: answers
+            columns:
+              - column:
+                  name: question_id
+
+  - changeSet:
+      id: 7-create-interaction-points-table
+      author: vroom-team
+      comment: Create interaction points for timestamp-based video pauses
+      changes:
+        - createTable:
+            tableName: interaction_points
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: scenario_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_interaction_scenario
+                    references: scenarios(id)
+                    deleteCascade: true
+              - column:
+                  name: question_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_interaction_question
+                    references: questions(id)
+                    deleteCascade: true
+              - column:
+                  name: timestamp_seconds
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: order_index
+                  type: integer
+              - column:
+                  name: pause_enabled
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: created_at
+                  type: timestamp
+        - createIndex:
+            indexName: idx_interaction_scenario
+            tableName: interaction_points
+            columns:
+              - column:
+                  name: scenario_id
+        - createIndex:
+            indexName: idx_interaction_timestamp
+            tableName: interaction_points
+            columns:
+              - column:
+                  name: scenario_id
+              - column:
+                  name: timestamp_seconds
+
+  - changeSet:
+      id: 8-create-badges-table
+      author: vroom-team
+      comment: Create badges table for gamification
+      changes:
+        - createTable:
+            tableName: badges
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: badge_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: icon_url
+                  type: varchar(255)
+              - column:
+                  name: criteria_json
+                  type: jsonb
+              - column:
+                  name: points_required
+                  type: integer
+              - column:
+                  name: scenarios_required
+                  type: integer
+              - column:
+                  name: theme
+                  type: varchar(50)
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: created_at
+                  type: timestamp
+        - createIndex:
+            indexName: idx_badge_type
+            tableName: badges
+            columns:
+              - column:
+                  name: badge_type
+
+  - changeSet:
+      id: 9-create-student-badges-table
+      author: vroom-team
+      comment: Create junction table for student badges with UUID foreign key
+      changes:
+        - createTable:
+            tableName: student_badges
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: student_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_student_badge_student
+                    references: students(id)
+                    deleteCascade: true
+              - column:
+                  name: badge_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_student_badge_badge
+                    references: badges(id)
+                    deleteCascade: true
+              - column:
+                  name: earned_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: progress_percentage
+                  type: double precision
+                  defaultValueNumeric: 0.0
+        - addUniqueConstraint:
+            tableName: student_badges
+            columnNames: student_id, badge_id
+            constraintName: uk_student_badge
+        - createIndex:
+            indexName: idx_student_badge_student
+            tableName: student_badges
+            columns:
+              - column:
+                  name: student_id
+        - createIndex:
+            indexName: idx_student_badge_badge
+            tableName: student_badges
+            columns:
+              - column:
+                  name: badge_id
+
+  # ----------------------------------------------------------------------------
+  # MEDIA MODULE TABLES
+  # ----------------------------------------------------------------------------
+
+  - changeSet:
+      id: 10-create-videos-table
+      author: vroom-team
+      comment: Create videos table for media management
+      changes:
+        - createTable:
+            tableName: videos
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: filename
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: original_filename
+                  type: varchar(255)
+              - column:
+                  name: s3_key
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: s3_bucket
+                  type: varchar(100)
+              - column:
+                  name: file_size_bytes
+                  type: bigint
+              - column:
+                  name: duration_seconds
+                  type: integer
+              - column:
+                  name: width
+                  type: integer
+              - column:
+                  name: height
+                  type: integer
+              - column:
+                  name: format
+                  type: varchar(20)
+              - column:
+                  name: video_status
+                  type: varchar(20)
+                  defaultValue: UPLOADING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: processing_status
+                  type: varchar(20)
+              - column:
+                  name: upload_url
+                  type: varchar(500)
+              - column:
+                  name: streaming_url
+                  type: varchar(500)
+              - column:
+                  name: uploaded_by
+                  type: uuid
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+        - createIndex:
+            indexName: idx_video_status
+            tableName: videos
+            columns:
+              - column:
+                  name: video_status
+        - createIndex:
+            indexName: idx_video_uploaded_by
+            tableName: videos
+            columns:
+              - column:
+                  name: uploaded_by
+
+  - changeSet:
+      id: 11-create-video-metadata-table
+      author: vroom-team
+      comment: Create video metadata table
+      changes:
+        - createTable:
+            tableName: video_metadata
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: video_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    unique: true
+                    foreignKeyName: fk_metadata_video
+                    references: videos(id)
+                    deleteCascade: true
+              - column:
+                  name: title
+                  type: varchar(200)
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: tags
+                  type: varchar(255)
+              - column:
+                  name: quality
+                  type: varchar(20)
+              - column:
+                  name: codec
+                  type: varchar(50)
+              - column:
+                  name: bitrate
+                  type: integer
+              - column:
+                  name: framerate
+                  type: double precision
+              - column:
+                  name: aspect_ratio
+                  type: varchar(10)
+              - column:
+                  name: metadata_json
+                  type: jsonb
+
+  - changeSet:
+      id: 12-create-thumbnails-table
+      author: vroom-team
+      comment: Create thumbnails table for video previews
+      changes:
+        - createTable:
+            tableName: thumbnails
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: video_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_thumbnail_video
+                    references: videos(id)
+                    deleteCascade: true
+              - column:
+                  name: s3_key
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: url
+                  type: varchar(500)
+              - column:
+                  name: timestamp_seconds
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: width
+                  type: integer
+              - column:
+                  name: height
+                  type: integer
+              - column:
+                  name: is_default
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: created_at
+                  type: timestamp
+        - createIndex:
+            indexName: idx_thumbnail_video
+            tableName: thumbnails
+            columns:
+              - column:
+                  name: video_id
+
+  # ----------------------------------------------------------------------------
+  # NOTIFICATION MODULE TABLES
+  # ----------------------------------------------------------------------------
+
+  - changeSet:
+      id: 13-create-notifications-table
+      author: vroom-team
+      comment: Create notifications table with UUID foreign key
+      changes:
+        - createTable:
+            tableName: notifications
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_notification_user
+                    references: users(id)
+                    deleteCascade: true
+              - column:
+                  name: notification_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: title
+                  type: varchar(200)
+              - column:
+                  name: message
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notification_channel
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: notification_status
+                  type: varchar(20)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_read
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: read_at
+                  type: timestamp
+              - column:
+                  name: related_entity_type
+                  type: varchar(50)
+              - column:
+                  name: related_entity_id
+                  type: bigint
+              - column:
+                  name: data_json
+                  type: jsonb
+              - column:
+                  name: sent_at
+                  type: timestamp
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_notification_user
+            tableName: notifications
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_notification_status
+            tableName: notifications
+            columns:
+              - column:
+                  name: notification_status
+        - createIndex:
+            indexName: idx_notification_read
+            tableName: notifications
+            columns:
+              - column:
+                  name: is_read
+
+  - changeSet:
+      id: 14-create-notification-preferences-table
+      author: vroom-team
+      comment: Create notification preferences table with UUID foreign key
+      changes:
+        - createTable:
+            tableName: notification_preferences
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    unique: true
+                    foreignKeyName: fk_notification_pref_user
+                    references: users(id)
+                    deleteCascade: true
+              - column:
+                  name: email_enabled
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: in_app_enabled
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: assignment_notifications
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: badge_notifications
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: reminder_notifications
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: progress_notifications
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: marketing_notifications
+                  type: boolean
+                  defaultValueBoolean: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+
+  # ----------------------------------------------------------------------------
+  # LEARNING MODULE TABLES
+  # ----------------------------------------------------------------------------
+
+  - changeSet:
+      id: 15-create-student-scenarios-table
+      author: vroom-team
+      comment: Create student scenarios for progress tracking with UUID foreign key
+      changes:
+        - createTable:
+            tableName: student_scenarios
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: student_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_student_scenario_student
+                    references: students(id)
+                    deleteCascade: true
+              - column:
+                  name: scenario_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_student_scenario_scenario
+                    references: scenarios(id)
+                    deleteCascade: true
+              - column:
+                  name: status
+                  type: varchar(20)
+                  defaultValue: NOT_STARTED
+                  constraints:
+                    nullable: false
+              - column:
+                  name: score
+                  type: integer
+              - column:
+                  name: max_score
+                  type: integer
+              - column:
+                  name: percentage
+                  type: double precision
+              - column:
+                  name: attempts
+                  type: integer
+                  defaultValueNumeric: 0
+              - column:
+                  name: completion_time_seconds
+                  type: integer
+              - column:
+                  name: started_at
+                  type: timestamp
+              - column:
+                  name: completed_at
+                  type: timestamp
+              - column:
+                  name: last_accessed_at
+                  type: timestamp
+        - addUniqueConstraint:
+            tableName: student_scenarios
+            columnNames: student_id, scenario_id
+            constraintName: uk_student_scenario
+        - createIndex:
+            indexName: idx_student_scenario_student
+            tableName: student_scenarios
+            columns:
+              - column:
+                  name: student_id
+        - createIndex:
+            indexName: idx_student_scenario_status
+            tableName: student_scenarios
+            columns:
+              - column:
+                  name: status
+
+  - changeSet:
+      id: 16-create-student-answers-table
+      author: vroom-team
+      comment: Create student answers for tracking responses
+      changes:
+        - createTable:
+            tableName: student_answers
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: student_scenario_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_student_answer_student_scenario
+                    references: student_scenarios(id)
+                    deleteCascade: true
+              - column:
+                  name: question_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_student_answer_question
+                    references: questions(id)
+              - column:
+                  name: answer_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_student_answer_answer
+                    references: answers(id)
+              - column:
+                  name: answer_text
+                  type: text
+              - column:
+                  name: is_correct
+                  type: boolean
+              - column:
+                  name: points_earned
+                  type: integer
+              - column:
+                  name: time_taken_seconds
+                  type: integer
+              - column:
+                  name: answered_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_student_answer_scenario
+            tableName: student_answers
+            columns:
+              - column:
+                  name: student_scenario_id
+        - createIndex:
+            indexName: idx_student_answer_question
+            tableName: student_answers
+            columns:
+              - column:
+                  name: question_id
+
+  - changeSet:
+      id: 17-create-assignments-table
+      author: vroom-team
+      comment: Create assignments table for instructor-student assignments with UUID foreign keys
+      changes:
+        - createTable:
+            tableName: assignments
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: instructor_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_assignment_instructor
+                    references: instructors(id)
+              - column:
+                  name: student_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_assignment_student
+                    references: students(id)
+                    deleteCascade: true
+              - column:
+                  name: scenario_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_assignment_scenario
+                    references: scenarios(id)
+              - column:
+                  name: title
+                  type: varchar(200)
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: status
+                  type: varchar(20)
+                  defaultValue: ASSIGNED
+                  constraints:
+                    nullable: false
+              - column:
+                  name: due_date
+                  type: timestamp
+              - column:
+                  name: priority
+                  type: varchar(20)
+                  defaultValue: MEDIUM
+              - column:
+                  name: assigned_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: started_at
+                  type: timestamp
+              - column:
+                  name: completed_at
+                  type: timestamp
+              - column:
+                  name: instructor_notes
+                  type: text
+              - column:
+                  name: student_notes
+                  type: text
+        - createIndex:
+            indexName: idx_assignment_instructor
+            tableName: assignments
+            columns:
+              - column:
+                  name: instructor_id
+        - createIndex:
+            indexName: idx_assignment_student
+            tableName: assignments
+            columns:
+              - column:
+                  name: student_id
+        - createIndex:
+            indexName: idx_assignment_status
+            tableName: assignments
+            columns:
+              - column:
+                  name: status
+
+  - changeSet:
+      id: 18-create-learning-paths-table
+      author: vroom-team
+      comment: Create learning paths for structured learning with UUID foreign key
+      changes:
+        - createTable:
+            tableName: learning_paths
+            columns:
+              - column:
+                  name: id
+                  type: bigserial
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: difficulty
+                  type: varchar(20)
+              - column:
+                  name: estimated_duration_hours
+                  type: integer
+              - column:
+                  name: scenario_ids
+                  type: jsonb
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: created_by
+                  type: uuid
+              - column:
+                  name: created_at
+                  type: timestamp
+              - column:
+                  name: updated_at
+                  type: timestamp
+
+  - changeSet:
+      id: 19-add-foreign-key-constraints
+      author: vroom-team
+      comment: Add remaining foreign key constraints
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: scenarios
+            baseColumnNames: video_id
+            referencedTableName: videos
+            referencedColumnNames: id
+            constraintName: fk_scenario_video
+            onDelete: SET NULL
+        - addForeignKeyConstraint:
+            baseTableName: scenarios
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_scenario_creator
+            onDelete: SET NULL
+        - addForeignKeyConstraint:
+            baseTableName: videos
+            baseColumnNames: uploaded_by
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_video_uploader
+            onDelete: SET NULL
+        - addForeignKeyConstraint:
+            baseTableName: learning_paths
+            baseColumnNames: created_by
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_learning_path_creator
+            onDelete: SET NULL
+        - addForeignKeyConstraint:
+            baseTableName: students
+            baseColumnNames: assigned_instructor_id
+            referencedTableName: instructors
+            referencedColumnNames: id
+            constraintName: fk_student_instructor
+            onDelete: SET NULL
+
+  # ----------------------------------------------------------------------------
+  # ROLLBACK SUPPORT
+  # ----------------------------------------------------------------------------
+
+  - changeSet:
+      id: 20-add-rollback-tags
+      author: vroom-team
+      comment: Tag changesets for rollback capability
+      changes:
+        - tagDatabase:
+            tag: version-1.0.0-complete-schema-uuid

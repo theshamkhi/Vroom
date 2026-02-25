@@ -26,6 +26,10 @@
             <groupId>com.vroom</groupId>
             <artifactId>security</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.vroom</groupId>
+            <artifactId>notification</artifactId>
+        </dependency>
 
         <!-- Spring Boot Web -->
         <dependency>

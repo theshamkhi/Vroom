@@ -2,6 +2,7 @@ package com.vroom.content.controller;
 
 import com.vroom.content.dto.BadgeDTO;
 import com.vroom.content.service.BadgeService;
+import com.vroom.security.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ public class BadgeController {
     @Operation(summary = "Get my badges", description = "Get badges earned by current student")
     public ResponseEntity<List<BadgeDTO>> getMyBadges(@AuthenticationPrincipal UserDetails userDetails) {
         // TODO: Extract actual student ID from authenticated user
-        UUID studentId = UUID.randomUUID(); // Placeholder
+        UUID studentId = SecurityUtils.getCurrentUserId();
 
         List<BadgeDTO> badges = badgeService.getStudentBadges(studentId);
         return ResponseEntity.ok(badges);

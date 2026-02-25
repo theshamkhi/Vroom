@@ -5,6 +5,7 @@ import com.vroom.content.dto.ScenarioDTO;
 import com.vroom.content.model.enums.Difficulty;
 import com.vroom.content.model.enums.Theme;
 import com.vroom.content.service.ScenarioService;
+import com.vroom.security.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -42,8 +43,7 @@ public class ScenarioController {
             @Valid @RequestBody CreateScenarioRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        // TODO: Extract actual user ID from authenticated user
-        UUID createdBy = UUID.randomUUID(); // Placeholder
+        UUID createdBy = SecurityUtils.getCurrentUserId();
 
         ScenarioDTO created = scenarioService.createScenario(request, createdBy);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -140,8 +140,7 @@ public class ScenarioController {
             @Valid @RequestBody CreateScenarioRequest request,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        // TODO: Extract actual user ID from authenticated user
-        UUID updatedBy = UUID.randomUUID(); // Placeholder
+        UUID updatedBy = SecurityUtils.getCurrentUserId();
 
         ScenarioDTO updated = scenarioService.updateScenario(id, request, updatedBy);
         return ResponseEntity.ok(updated);
@@ -157,8 +156,7 @@ public class ScenarioController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        // TODO: Extract actual user ID from authenticated user
-        UUID publishedBy = UUID.randomUUID(); // Placeholder
+        UUID publishedBy = SecurityUtils.getCurrentUserId();
 
         ScenarioDTO published = scenarioService.publishScenario(id, publishedBy);
         return ResponseEntity.ok(published);
@@ -174,8 +172,7 @@ public class ScenarioController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        // TODO: Extract actual user ID from authenticated user
-        UUID unpublishedBy = UUID.randomUUID(); // Placeholder
+        UUID unpublishedBy = SecurityUtils.getCurrentUserId();
 
         ScenarioDTO unpublished = scenarioService.unpublishScenario(id, unpublishedBy);
         return ResponseEntity.ok(unpublished);

@@ -95,9 +95,8 @@ vroom-platform/
 ### 1. Clone & Setup
 
 ```bash
-git clone https://github.com/yourusername/vroom-platform.git
-cd vroom-platform
-createdb vroom_db
+git clone https://github.com/theshamkhi/Vroom.git
+cd Vroom
 ```
 
 ### 2. Configure

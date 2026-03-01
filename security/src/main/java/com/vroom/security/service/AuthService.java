@@ -3,9 +3,9 @@ package com.vroom.security.service;
 import com.vroom.security.dto.*;
 
 /**
- *   Authentication service contract
- *   Handles registration, login, token refresh,
- *   email verification, and password management.
+ * Authentication service contract
+ * Handles registration, login, token refresh,
+ * email verification, and password management.
  */
 public interface AuthService {
 
@@ -43,4 +43,9 @@ public interface AuthService {
      * Resend email verification link
      */
     void resendVerificationEmail(String email);
+
+    /**
+     * Get current authenticated user information
+     */
+    UserInfoDTO getCurrentUser();
 }

@@ -103,6 +103,14 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
     }
 
+    @GetMapping("/me")
+    @Operation(summary = "Get current user", description = "Get currently authenticated user information")
+    public ResponseEntity<UserInfoDTO> getCurrentUser() {
+        log.info("Get current user request received");
+        UserInfoDTO userInfo = authService.getCurrentUser();
+        return ResponseEntity.ok(userInfo);
+    }
+
     /**
      * Logout (client-side token invalidation)
      */

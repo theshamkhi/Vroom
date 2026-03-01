@@ -12,24 +12,51 @@ import java.util.List;
 
 /**
  * CORS configuration for allowing frontend access
+ * This configuration is used by Spring Security to handle CORS
  */
 @Configuration
 public class CorsConfig {
 
     @Value("${cors.allowed-origins:http://localhost:4200,http://localhost:3000}")
-    private String[] allowedOrigins;
+    private String allowedOriginsString;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        // Parse allowed origins from property
+        List<String> allowedOrigins = Arrays.asList(allowedOriginsString.split(","));
+        configuration.setAllowedOrigins(allowedOrigins);
+
+        // Allow all common HTTP methods
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "PATCH",
+                "OPTIONS"
+        ));
+
+        // Allow all headers
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        // Expose these headers to the client
+        configuration.setExposedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "X-Total-Count",
+                "X-Page-Number",
+                "X-Page-Size"
+        ));
+
+        // Allow credentials (cookies, authorization headers)
         configuration.setAllowCredentials(true);
+
+        // Cache preflight response for 1 hour
         configuration.setMaxAge(3600L);
 
+        // Register CORS configuration for all paths
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 

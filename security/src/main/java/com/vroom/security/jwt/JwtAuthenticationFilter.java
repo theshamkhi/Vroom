@@ -89,7 +89,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * Check if the endpoint is public (doesn't require authentication)
      */
     private boolean isPublicEndpoint(String path) {
-        return path.startsWith("/api/auth/") ||
+        return path.equals("/api/auth/register") ||
+                path.equals("/api/auth/login") ||
+                path.equals("/api/auth/refresh") ||
+                path.equals("/api/auth/verify-email") ||
+                path.equals("/api/auth/resend-verification") ||
+                path.equals("/api/auth/forgot-password") ||
+                path.equals("/api/auth/reset-password") ||
                 path.startsWith("/api/public/") ||
                 path.startsWith("/swagger-ui") ||
                 path.startsWith("/v3/api-docs") ||

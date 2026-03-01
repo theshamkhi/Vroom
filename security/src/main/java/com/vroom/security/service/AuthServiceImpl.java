@@ -12,8 +12,11 @@ import com.vroom.security.repository.StudentRepository;
 import com.vroom.security.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -42,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Register a new user
      */
+    @Override
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         log.info("Registering new user with email: {}", request.getEmail());
@@ -96,6 +100,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Authenticate user and generate tokens
      */
+    @Override
     @Transactional
     public AuthResponse login(LoginRequest request) {
         log.info("Login attempt for email: {}", request.getEmail());
@@ -133,6 +138,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Refresh access token
      */
+    @Override
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         final String refreshToken = request.getRefreshToken();
         final String userEmail = jwtService.extractUsername(refreshToken);
@@ -157,6 +163,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Verify email with token
      */
+    @Override
     @Transactional
     public EmailVerificationDTO verifyEmail(String token) {
         log.info("Verifying email with token");
@@ -200,6 +207,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Request password reset
      */
+    @Override
     @Transactional
     public void requestPasswordReset(String email) {
         log.info("Password reset requested for: {}", email);
@@ -230,6 +238,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Reset password with token
      */
+    @Override
     @Transactional
     public void resetPassword(PasswordResetRequest request) {
         log.info("Resetting password for: {}", request.getEmail());
@@ -272,6 +281,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * Resend verification email
      */
+    @Override
     @Transactional
     public void resendVerificationEmail(String email) {
         log.info("Resending verification email to: {}", email);
@@ -301,6 +311,31 @@ public class AuthServiceImpl implements AuthService {
             log.error("Failed to resend verification email to: {}", email, e);
             throw new RuntimeException("Failed to send verification email. Please try again later.");
         }
+    }
+
+    /**
+     * Get current authenticated user information
+     */
+    @Override
+    public UserInfoDTO getCurrentUser() {
+        log.info("Fetching current user information");
+
+        // Get current user from security context
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AuthenticationCredentialsNotFoundException("No authenticated user found");
+        }
+
+        String email = authentication.getName();
+
+        if (email == null || email.isBlank() || "anonymousUser".equalsIgnoreCase(email)) {
+            throw new AuthenticationCredentialsNotFoundException("No authenticated user found");
+        }
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        return buildUserInfoDTO(user);
     }
 
     // Helper methods
@@ -364,5 +399,32 @@ public class AuthServiceImpl implements AuthService {
                 .role(user.getRole())
                 .emailVerified(user.isEnabled())
                 .build();
+    }
+
+    private UserInfoDTO buildUserInfoDTO(User user) {
+        UserInfoDTO.UserInfoDTOBuilder builder = UserInfoDTO.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .fullName(user.getFullName())
+                .role(user.getRole())
+                .enabled(user.isEnabled())
+                .emailVerified(user.isEnabled())
+                .profilePictureUrl(user.getProfilePictureUrl())
+                .createdAt(user.getCreatedAt())
+                .lastLoginAt(user.getLastLoginAt());
+
+        // Add role-specific fields
+        if (user instanceof Student student) {
+            builder.totalPoints(student.getTotalPoints())
+                    .completionPercentage(student.getCompletionPercentage());
+        } else if (user instanceof Instructor instructor) {
+            builder.licenseNumber(instructor.getLicenseNumber())
+                    .yearsOfExperience(instructor.getYearsOfExperience())
+                    .activeStudents(instructor.getActiveStudents());
+        }
+
+        return builder.build();
     }
 }

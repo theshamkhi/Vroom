@@ -90,7 +90,7 @@ public interface InstructorRepository extends JpaRepository<Instructor, UUID> {
     /**
      * Get total number of active students across all instructors
      */
-    @Query("SELECT SUM(i.activeStudents) FROM Instructor i")
+    @Query("SELECT COUNT(s) FROM Student s WHERE s.assignedInstructorId IS NOT NULL")
     Long getTotalActiveStudents();
 
     /**

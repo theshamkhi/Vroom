@@ -6,11 +6,13 @@ import com.vroom.content.repository.AnswerRepository;
 import com.vroom.content.repository.QuestionRepository;
 import com.vroom.learning.dto.ProgressDTO;
 import com.vroom.learning.dto.SubmitAnswerRequest;
+import com.vroom.learning.dto.SubmitAnswerResponse;
 import com.vroom.learning.model.entity.StudentAnswer;
 import com.vroom.learning.model.entity.StudentScenario;
 import com.vroom.learning.repository.StudentAnswerRepository;
 import com.vroom.learning.repository.StudentScenarioRepository;
 import com.vroom.shared.exception.ResourceNotFoundException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,7 +60,7 @@ public class ProgressService {
      * Submit answer to a question
      */
     @Transactional
-    public void submitAnswer(UUID studentId, SubmitAnswerRequest request) {
+    public SubmitAnswerResponse submitAnswer(UUID studentId, SubmitAnswerRequest request) {
         log.info("Student {} submitting answer for question {}", studentId, request.getQuestionId());
 
         // Get or create student scenario progress
@@ -96,6 +98,12 @@ public class ProgressService {
         studentAnswerRepository.save(answer);
         log.info("Answer submitted for question {} - Correct: {}, Points: {}",
                 request.getQuestionId(), isCorrect, pointsEarned);
+
+        return SubmitAnswerResponse.builder()
+                .correct(isCorrect)
+                .pointsEarned(pointsEarned)
+                .explanation(null)
+                .build();
     }
 
     /**

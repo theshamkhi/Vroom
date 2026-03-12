@@ -108,4 +108,9 @@ public interface StudentRepository extends JpaRepository<Student, UUID> {
      */
     @Query("SELECT s FROM Student s WHERE s.completionPercentage < :threshold AND s.lastLoginAt < :lastActivity")
     List<Student> findInactiveStudents(@Param("threshold") Double threshold, @Param("lastActivity") java.time.LocalDateTime lastActivity);
+
+    /**
+     * Count enabled students
+     */
+    long countByEnabledTrue();
 }

@@ -11,6 +11,7 @@ import com.vroom.content.repository.ScenarioRepository;
 import com.vroom.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
@@ -73,7 +74,7 @@ public class ScenarioServiceImpl implements ScenarioService {
         log.debug("Fetching scenario: {}", id);
 
         Scenario scenario = scenarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Scenario not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Scenario", "id", id));
 
         return mapToDTO(scenario);
     }
@@ -86,7 +87,7 @@ public class ScenarioServiceImpl implements ScenarioService {
         log.debug("Fetching published scenario: {}", id);
 
         Scenario scenario = scenarioRepository.findByIdAndPublishedTrue(id)
-                .orElseThrow(() -> new RuntimeException("Published scenario not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Scenario", "id", id));
 
         return mapToDTO(scenario);
     }
@@ -161,21 +162,48 @@ public class ScenarioServiceImpl implements ScenarioService {
         log.info("Updating scenario: {}", id);
 
         Scenario scenario = scenarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Scenario not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Scenario", "id", id));
 
         scenario.setTitle(request.getTitle());
         scenario.setDescription(request.getDescription());
         scenario.setDifficulty(request.getDifficulty());
         scenario.setTheme(request.getTheme());
-        scenario.setVideoId(request.getVideoId());
-        scenario.setDurationSeconds(request.getDurationSeconds());
-        scenario.setEstimatedMinutes(request.getEstimatedMinutes());
-        scenario.setTags(request.getTags());
-        scenario.setPrerequisiteIds(request.getPrerequisiteIds());
-        scenario.setThumbnailUrl(request.getThumbnailUrl());
-        scenario.setLearningObjectives(request.getLearningObjectives());
-        scenario.setMaxPoints(request.getMaxPoints());
-        scenario.setPassingScore(request.getPassingScore());
+        if (request.getVideoId() != null) {
+            scenario.setVideoId(request.getVideoId());
+        }
+
+        if (request.getDurationSeconds() != null) {
+            scenario.setDurationSeconds(request.getDurationSeconds());
+        }
+
+        if (request.getEstimatedMinutes() != null) {
+            scenario.setEstimatedMinutes(request.getEstimatedMinutes());
+        } else if (request.getDurationSeconds() != null) {
+            scenario.setEstimatedMinutes((int) Math.ceil(request.getDurationSeconds() / 60.0));
+        }
+
+        if (scenario.getEstimatedMinutes() == null) {
+            throw new IllegalArgumentException("estimatedMinutes is required (either provide estimatedMinutes or durationSeconds)");
+        }
+
+        if (request.getTags() != null) {
+            scenario.setTags(request.getTags());
+        }
+        if (request.getPrerequisiteIds() != null) {
+            scenario.setPrerequisiteIds(request.getPrerequisiteIds());
+        }
+        if (request.getThumbnailUrl() != null) {
+            scenario.setThumbnailUrl(request.getThumbnailUrl());
+        }
+        if (request.getLearningObjectives() != null) {
+            scenario.setLearningObjectives(request.getLearningObjectives());
+        }
+        if (request.getMaxPoints() != null) {
+            scenario.setMaxPoints(request.getMaxPoints());
+        }
+        if (request.getPassingScore() != null) {
+            scenario.setPassingScore(request.getPassingScore());
+        }
         scenario.setLastModifiedBy(updatedBy);
 
         Scenario updatedScenario = scenarioRepository.save(scenario);

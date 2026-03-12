@@ -53,7 +53,6 @@ public class BadgeController {
     @GetMapping("/my-badges")
     @Operation(summary = "Get my badges", description = "Get badges earned by current student")
     public ResponseEntity<List<BadgeDTO>> getMyBadges(@AuthenticationPrincipal UserDetails userDetails) {
-        // TODO: Extract actual student ID from authenticated user
         UUID studentId = SecurityUtils.getCurrentUserId();
 
         List<BadgeDTO> badges = badgeService.getStudentBadges(studentId);

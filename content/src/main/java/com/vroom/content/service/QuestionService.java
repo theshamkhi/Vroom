@@ -13,6 +13,8 @@ public interface QuestionService {
 
     QuestionDTO createQuestion(UUID scenarioId, CreateQuestionRequest request);
 
+    QuestionDTO updateQuestion(UUID scenarioId, UUID questionId, CreateQuestionRequest request);
+
     List<QuestionDTO> getQuestionsByScenario(UUID scenarioId);
 
     QuestionDTO getQuestionById(UUID id);

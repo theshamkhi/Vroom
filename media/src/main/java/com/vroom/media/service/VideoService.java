@@ -6,6 +6,7 @@ import com.vroom.media.model.entity.Video;
 import com.vroom.media.model.enums.VideoStatus;
 import com.vroom.media.repository.VideoRepository;
 import com.vroom.media.service.storage.VideoStorageService;
+import com.vroom.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,12 +44,16 @@ public class VideoService {
         UUID videoId = UUID.randomUUID();
         String storedFilename = videoId.toString() + getFileExtension(file.getOriginalFilename());
 
+        // FIX: Upload to storage FIRST to get the file path
+        String filePath = videoStorageService.uploadVideo(file, videoId);
+
         Video video = Video.builder()
                 .id(videoId)
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .originalFilename(file.getOriginalFilename())
                 .storedFilename(storedFilename)
+                .filePath(filePath)
                 .mimeType(file.getContentType())
                 .fileSizeBytes(file.getSize())
                 .status(VideoStatus.UPLOADING)
@@ -57,13 +62,11 @@ public class VideoService {
                 .isPublic(request.getIsPublic() != null ? request.getIsPublic() : false)
                 .build();
 
-        // Save to database first
+        // Save to database with file path already set
         video = videoRepository.save(video);
 
         try {
-            // Upload to storage
-            String filePath = videoStorageService.uploadVideo(file, videoId);
-            video.setFilePath(filePath);
+            // Mark as processing
             video.markAsProcessing();
 
             // Generate thumbnail asynchronously
@@ -78,7 +81,7 @@ public class VideoService {
             }
 
             // Mark as ready
-            video.setVideoUrl(videoStorageService.getVideoUrl(filePath));
+            video.setVideoUrl("/api/videos/stream/" + videoId);
             video.setThumbnailUrl(video.getThumbnailPath() != null ?
                     videoStorageService.getThumbnailUrl(video.getThumbnailPath()) : null);
             video.markAsReady();
@@ -89,10 +92,10 @@ public class VideoService {
             return mapToDTO(video);
 
         } catch (Exception e) {
-            log.error("Failed to upload video", e);
+            log.error("Failed to process video after upload", e);
             video.markAsFailed();
             videoRepository.save(video);
-            throw new IOException("Failed to upload video", e);
+            throw new IOException("Failed to process video", e);
         }
     }
 
@@ -103,7 +106,7 @@ public class VideoService {
         log.debug("Fetching video: {}", id);
 
         Video video = videoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Video not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Video", "id", id));
 
         return mapToDTO(video);
     }
@@ -113,10 +116,10 @@ public class VideoService {
      */
     public InputStream getVideoStream(UUID id) throws IOException {
         Video video = videoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Video not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Video", "id", id));
 
         if (!video.isReady()) {
-            throw new RuntimeException("Video is not ready for streaming");
+            throw new IllegalStateException("Video is not ready for streaming");
         }
 
         // Increment view count

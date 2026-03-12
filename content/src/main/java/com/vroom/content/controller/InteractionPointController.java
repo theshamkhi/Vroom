@@ -56,6 +56,36 @@ public class InteractionPointController {
         return ResponseEntity.ok(questions);
     }
 
+    @PutMapping("/questions/{questionId}")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    public ResponseEntity<QuestionDTO> updateQuestion(
+            @PathVariable UUID scenarioId,
+            @PathVariable UUID questionId,
+            @Valid @RequestBody CreateQuestionRequest request) {
+
+        QuestionDTO updated = questionService.updateQuestion(scenarioId, questionId, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/questions/{questionId}")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    public ResponseEntity<Void> deleteQuestion(
+            @PathVariable UUID scenarioId,
+            @PathVariable UUID questionId) {
+
+        try {
+            QuestionDTO question = questionService.getQuestionById(questionId);
+            if (question == null || !scenarioId.equals(question.getScenarioId())) {
+                return ResponseEntity.notFound().build();
+            }
+
+            questionService.deleteQuestion(questionId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException ex) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     /**
      * Create interaction point for scenario
      */
@@ -78,6 +108,17 @@ public class InteractionPointController {
     public ResponseEntity<List<InteractionPointDTO>> getInteractionPoints(@PathVariable UUID scenarioId) {
         List<InteractionPointDTO> interactionPoints = interactionPointService.getInteractionPointsByScenario(scenarioId);
         return ResponseEntity.ok(interactionPoints);
+    }
+
+    @PutMapping("/interaction-points/{interactionPointId}")
+    @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")
+    public ResponseEntity<InteractionPointDTO> updateInteractionPoint(
+            @PathVariable UUID scenarioId,
+            @PathVariable UUID interactionPointId,
+            @Valid @RequestBody CreateInteractionPointRequest request) {
+
+        InteractionPointDTO updated = interactionPointService.updateInteractionPoint(scenarioId, interactionPointId, request);
+        return ResponseEntity.ok(updated);
     }
 
     /**

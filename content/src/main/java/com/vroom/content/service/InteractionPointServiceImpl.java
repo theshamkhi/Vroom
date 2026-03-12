@@ -51,6 +51,36 @@ public class InteractionPointServiceImpl implements InteractionPointService {
         return mapToDTO(saved);
     }
 
+    @Transactional
+    public InteractionPointDTO updateInteractionPoint(UUID scenarioId, UUID interactionPointId, CreateInteractionPointRequest request) {
+        log.info("Updating interaction point {} for scenario: {}", interactionPointId, scenarioId);
+
+        InteractionPoint interactionPoint = interactionPointRepository.findById(interactionPointId)
+                .orElseThrow(() -> new RuntimeException("Interaction point not found with id: " + interactionPointId));
+
+        if (!scenarioId.equals(interactionPoint.getScenarioId())) {
+            throw new RuntimeException("Interaction point does not belong to scenario: " + scenarioId);
+        }
+
+        if (request.getTimestampSeconds() != null
+                && !request.getTimestampSeconds().equals(interactionPoint.getTimestampSeconds())
+                && interactionPointRepository.existsByScenarioIdAndTimestampSeconds(scenarioId, request.getTimestampSeconds())) {
+            throw new RuntimeException("Interaction point already exists at timestamp: " + request.getTimestampSeconds());
+        }
+
+        interactionPoint.setQuestionId(request.getQuestionId());
+        interactionPoint.setTimestampSeconds(request.getTimestampSeconds());
+        interactionPoint.setTitle(request.getTitle());
+        interactionPoint.setDescription(request.getDescription());
+        interactionPoint.setOrderIndex(request.getOrderIndex() != null ? request.getOrderIndex() : 0);
+        interactionPoint.setMandatory(request.getMandatory() != null ? request.getMandatory() : true);
+
+        InteractionPoint saved = interactionPointRepository.save(interactionPoint);
+        log.info("Interaction point updated successfully: {}", saved.getId());
+
+        return mapToDTO(saved);
+    }
+
     /**
      * Get all interaction points for a scenario (ordered by timestamp)
      */

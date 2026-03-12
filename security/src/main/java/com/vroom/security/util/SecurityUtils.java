@@ -1,6 +1,7 @@
 package com.vroom.security.util;
 
 import com.vroom.security.model.entity.User;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -36,7 +37,10 @@ public class SecurityUtils {
      */
     public static UUID getCurrentUserId() {
         User user = getCurrentUser();
-        return user != null ? user.getId() : null;
+        if (user == null) {
+            throw new AuthenticationCredentialsNotFoundException("Authentication is required");
+        }
+        return user.getId();
     }
 
     /**

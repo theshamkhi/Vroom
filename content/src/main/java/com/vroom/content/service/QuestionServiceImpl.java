@@ -61,6 +61,49 @@ public class QuestionServiceImpl implements QuestionService {
         return mapToDTO(savedQuestion);
     }
 
+    @Transactional
+    public QuestionDTO updateQuestion(UUID scenarioId, UUID questionId, CreateQuestionRequest request) {
+        log.info("Updating question {} for scenario: {}", questionId, scenarioId);
+
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new RuntimeException("Question not found with id: " + questionId));
+
+        if (!scenarioId.equals(question.getScenarioId())) {
+            throw new RuntimeException("Question does not belong to scenario: " + scenarioId);
+        }
+
+        question.setType(request.getType());
+        question.setQuestionText(request.getQuestionText());
+        question.setHint(request.getHint());
+        question.setExplanation(request.getExplanation());
+        question.setPoints(request.getPoints() != null ? request.getPoints() : 10);
+        question.setTimeLimitSeconds(request.getTimeLimitSeconds());
+        question.setOrderIndex(request.getOrderIndex() != null ? request.getOrderIndex() : 0);
+
+        if (question.getAnswers() != null) {
+            question.getAnswers().clear();
+        }
+
+        if (request.getAnswers() != null) {
+            for (int i = 0; i < request.getAnswers().size(); i++) {
+                CreateAnswerRequest answerReq = request.getAnswers().get(i);
+                Answer answer = Answer.builder()
+                        .answerText(answerReq.getAnswerText())
+                        .isCorrect(answerReq.getIsCorrect())
+                        .orderIndex(answerReq.getOrderIndex() != null ? answerReq.getOrderIndex() : i)
+                        .explanation(answerReq.getExplanation())
+                        .imageUrl(answerReq.getImageUrl())
+                        .build();
+                question.addAnswer(answer);
+            }
+        }
+
+        Question savedQuestion = questionRepository.save(question);
+        log.info("Question updated successfully: {}", savedQuestion.getId());
+
+        return mapToDTO(savedQuestion);
+    }
+
     /**
      * Get all questions for a scenario
      */

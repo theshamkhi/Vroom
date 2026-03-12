@@ -50,6 +50,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findByEnabledTrue();
 
     /**
+     * Count enabled users
+     */
+    long countByEnabledTrue();
+
+    /**
      * Find users created after a specific date
      */
     List<User> findByCreatedAtAfter(LocalDateTime date);

@@ -2,17 +2,19 @@
 
 IMAGE_TAG ?= master
 
+SET_TAG = set "IMAGE_TAG=$(IMAGE_TAG)" &&
+
 up:
-	IMAGE_TAG=$(IMAGE_TAG) docker compose up -d
+	$(SET_TAG) docker compose up -d
 
 down:
 	docker compose down
 
 pull:
-	IMAGE_TAG=$(IMAGE_TAG) docker compose pull app
+	$(SET_TAG) docker compose pull app
 
 restart:
-	IMAGE_TAG=$(IMAGE_TAG) docker compose up -d --pull always --no-deps app
+	$(SET_TAG) docker compose up -d --pull always --no-deps app
 
 logs:
 	docker compose logs -f --tail=200 app

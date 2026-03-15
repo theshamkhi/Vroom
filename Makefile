@@ -1,4 +1,4 @@
-.PHONY: up down pull restart logs ps
+.PHONY: up down pull restart logs ps version
 
 IMAGE_TAG ?= master
 
@@ -21,3 +21,11 @@ logs:
 
 ps:
 	docker compose ps
+
+version:
+	@echo "Checking running version for 'app' service..."
+	@docker inspect --format='{{.Config.Image}}' vroom-app-1
+	@echo "Image ID (Hash):"
+	@docker inspect --format='{{.Image}}' vroom-app-1
+	@echo "Created At:"
+	@docker inspect --format='{{.Created}}' vroom-app-1

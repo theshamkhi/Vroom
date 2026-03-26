@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16
+    container_name: vroom-db
     environment:
       POSTGRES_DB: Vroom
       POSTGRES_USER: postgres
@@ -12,6 +13,7 @@ services:
 
   app:
     image: ghcr.io/theshamkhi/vroom:${IMAGE_TAG:-master}
+    container_name: vroom-app
     ports:
       - "8080:8080"
     environment:

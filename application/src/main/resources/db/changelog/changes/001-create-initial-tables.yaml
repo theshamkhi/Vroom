@@ -309,8 +309,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -321,7 +320,9 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: description
-                  type: text
+                  type: varchar(1000)
+                  constraints:
+                    nullable: false
               - column:
                   name: difficulty
                   type: varchar(20)
@@ -335,42 +336,58 @@ databaseChangeLog:
               - column:
                   name: duration_seconds
                   type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: estimated_minutes
+                  type: integer
+                  defaultValueNumeric: 5
+                  constraints:
+                    nullable: false
               - column:
                   name: video_id
-                  type: bigint
+                  type: uuid
               - column:
                   name: thumbnail_url
-                  type: varchar(255)
+                  type: varchar(500)
               - column:
-                  name: total_points
+                  name: max_points
                   type: integer
-                  defaultValueNumeric: 0
+                  defaultValueNumeric: 100
+                  constraints:
+                    nullable: false
               - column:
-                  name: pass_score
+                  name: passing_score
                   type: integer
                   defaultValueNumeric: 70
+                  constraints:
+                    nullable: false
               - column:
-                  name: tags
-                  type: varchar(255)
-              - column:
-                  name: prerequisites
-                  type: varchar(255)
-              - column:
-                  name: is_published
+                  name: published
                   type: boolean
                   defaultValueBoolean: false
+                  constraints:
+                    nullable: false
               - column:
-                  name: average_completion_time
+                  name: completion_count
                   type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
               - column:
                   name: average_score
                   type: double precision
               - column:
-                  name: times_completed
-                  type: integer
-                  defaultValueNumeric: 0
+                  name: average_completion_time
+                  type: double precision
               - column:
                   name: created_by
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_modified_by
                   type: uuid
               - column:
                   name: created_at
@@ -379,6 +396,9 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: updated_at
+                  type: timestamp
+              - column:
+                  name: published_at
                   type: timestamp
         - createIndex:
             indexName: idx_scenario_difficulty
@@ -397,7 +417,63 @@ databaseChangeLog:
             tableName: scenarios
             columns:
               - column:
-                  name: is_published
+                  name: published
+
+  - changeSet:
+      id: 4b-create-scenario-tags-table
+      author: vroom-team
+      comment: Create scenario_tags table for Scenario.tags element collection
+      changes:
+        - createTable:
+            tableName: scenario_tags
+            columns:
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_scenario_tags_scenario
+                    references: scenarios(id)
+                    deleteCascade: true
+              - column:
+                  name: tag
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_scenario_tags_scenario
+            tableName: scenario_tags
+            columns:
+              - column:
+                  name: scenario_id
+
+  - changeSet:
+      id: 4c-create-scenario-prerequisites-table
+      author: vroom-team
+      comment: Create scenario_prerequisites table for Scenario.prerequisiteIds element collection
+      changes:
+        - createTable:
+            tableName: scenario_prerequisites
+            columns:
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_scenario_prereq_scenario
+                    references: scenarios(id)
+                    deleteCascade: true
+              - column:
+                  name: prerequisite_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_scenario_prereq_scenario
+            tableName: scenario_prerequisites
+            columns:
+              - column:
+                  name: scenario_id
 
   - changeSet:
       id: 5-create-questions-table
@@ -409,47 +485,68 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: scenario_id
-                  type: bigint
+                  type: uuid
                   constraints:
                     nullable: false
                     foreignKeyName: fk_question_scenario
                     references: scenarios(id)
                     deleteCascade: true
               - column:
-                  name: question_text
-                  type: text
+                  name: type
+                  type: varchar(30)
                   constraints:
                     nullable: false
               - column:
-                  name: question_type
-                  type: varchar(20)
+                  name: question_text
+                  type: varchar(500)
                   constraints:
                     nullable: false
+              - column:
+                  name: hint
+                  type: varchar(300)
               - column:
                   name: points
                   type: integer
                   defaultValueNumeric: 10
+                  constraints:
+                    nullable: false
+              - column:
+                  name: time_limit_seconds
+                  type: integer
               - column:
                   name: order_index
                   type: integer
-              - column:
-                  name: hint_text
-                  type: text
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
               - column:
                   name: explanation
-                  type: text
+                  type: varchar(500)
               - column:
-                  name: image_url
-                  type: varchar(255)
+                  name: attempt_count
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: correct_count
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
               - column:
                   name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
                   type: timestamp
         - createIndex:
             indexName: idx_question_scenario
@@ -462,7 +559,7 @@ databaseChangeLog:
             tableName: questions
             columns:
               - column:
-                  name: question_type
+                  name: type
 
   - changeSet:
       id: 6-create-answers-table
@@ -474,14 +571,13 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: question_id
-                  type: bigint
+                  type: uuid
                   constraints:
                     nullable: false
                     foreignKeyName: fk_answer_question
@@ -489,7 +585,7 @@ databaseChangeLog:
                     deleteCascade: true
               - column:
                   name: answer_text
-                  type: text
+                  type: varchar(300)
                   constraints:
                     nullable: false
               - column:
@@ -501,9 +597,23 @@ databaseChangeLog:
               - column:
                   name: order_index
                   type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
               - column:
                   name: explanation
-                  type: text
+                  type: varchar(500)
+              - column:
+                  name: image_url
+                  type: varchar(500)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
         - createIndex:
             indexName: idx_answer_question
             tableName: answers
@@ -521,14 +631,13 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: scenario_id
-                  type: bigint
+                  type: uuid
                   constraints:
                     nullable: false
                     foreignKeyName: fk_interaction_scenario
@@ -536,7 +645,7 @@ databaseChangeLog:
                     deleteCascade: true
               - column:
                   name: question_id
-                  type: bigint
+                  type: uuid
                   constraints:
                     nullable: false
                     foreignKeyName: fk_interaction_question
@@ -548,14 +657,30 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
+                  name: title
+                  type: varchar(100)
+              - column:
+                  name: description
+                  type: varchar(300)
+              - column:
                   name: order_index
                   type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
               - column:
-                  name: pause_enabled
+                  name: mandatory
                   type: boolean
                   defaultValueBoolean: true
+                  constraints:
+                    nullable: false
               - column:
                   name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
                   type: timestamp
         - createIndex:
             indexName: idx_interaction_scenario
@@ -582,8 +707,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -595,40 +719,58 @@ databaseChangeLog:
                     unique: true
               - column:
                   name: description
-                  type: text
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
               - column:
-                  name: badge_type
-                  type: varchar(20)
+                  name: type
+                  type: varchar(30)
                   constraints:
                     nullable: false
               - column:
                   name: icon_url
                   type: varchar(255)
               - column:
-                  name: criteria_json
-                  type: jsonb
+                  name: criteria
+                  type: varchar(1000)
               - column:
-                  name: points_required
+                  name: points_value
                   type: integer
+                  defaultValueNumeric: 50
+                  constraints:
+                    nullable: false
               - column:
-                  name: scenarios_required
+                  name: earned_count
                   type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
               - column:
-                  name: theme
-                  type: varchar(50)
-              - column:
-                  name: is_active
+                  name: active
                   type: boolean
                   defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: related_scenario_id
+                  type: uuid
+              - column:
+                  name: related_theme
+                  type: varchar(50)
               - column:
                   name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
                   type: timestamp
         - createIndex:
             indexName: idx_badge_type
             tableName: badges
             columns:
               - column:
-                  name: badge_type
+                  name: type
 
   - changeSet:
       id: 9-create-student-badges-table
@@ -640,8 +782,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -655,7 +796,7 @@ databaseChangeLog:
                     deleteCascade: true
               - column:
                   name: badge_id
-                  type: bigint
+                  type: uuid
                   constraints:
                     nullable: false
                     foreignKeyName: fk_student_badge_badge
@@ -667,13 +808,33 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: progress_percentage
-                  type: double precision
-                  defaultValueNumeric: 0.0
+                  name: earned_description
+                  type: varchar(300)
+              - column:
+                  name: earned_in_scenario_id
+                  type: uuid
+              - column:
+                  name: notified
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: displayed
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
         - addUniqueConstraint:
             tableName: student_badges
             columnNames: student_id, badge_id
             constraintName: uk_student_badge
+        - createIndex:
+            indexName: idx_student_badge_earned
+            tableName: student_badges
+            columns:
+              - column:
+                  name: earned_at
         - createIndex:
             indexName: idx_student_badge_student
             tableName: student_badges
@@ -701,61 +862,86 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: filename
-                  type: varchar(255)
+                  name: title
+                  type: varchar(200)
                   constraints:
                     nullable: false
+              - column:
+                  name: description
+                  type: varchar(1000)
               - column:
                   name: original_filename
                   type: varchar(255)
+                  constraints:
+                    nullable: false
               - column:
-                  name: s3_key
+                  name: stored_filename
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: file_path
                   type: varchar(500)
                   constraints:
                     nullable: false
-                    unique: true
               - column:
-                  name: s3_bucket
+                  name: mime_type
                   type: varchar(100)
               - column:
                   name: file_size_bytes
                   type: bigint
+                  constraints:
+                    nullable: false
               - column:
                   name: duration_seconds
                   type: integer
               - column:
-                  name: width
-                  type: integer
-              - column:
-                  name: height
-                  type: integer
-              - column:
-                  name: format
+                  name: resolution
                   type: varchar(20)
               - column:
-                  name: video_status
+                  name: thumbnail_filename
+                  type: varchar(255)
+              - column:
+                  name: thumbnail_path
+                  type: varchar(500)
+              - column:
+                  name: video_url
+                  type: varchar(1000)
+              - column:
+                  name: thumbnail_url
+                  type: varchar(1000)
+              - column:
+                  name: status
                   type: varchar(20)
                   defaultValue: UPLOADING
                   constraints:
                     nullable: false
               - column:
-                  name: processing_status
+                  name: storage_type
                   type: varchar(20)
-              - column:
-                  name: upload_url
-                  type: varchar(500)
-              - column:
-                  name: streaming_url
-                  type: varchar(500)
+                  defaultValue: LOCAL
               - column:
                   name: uploaded_by
                   type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: view_count
+                  type: bigint
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_public
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
               - column:
                   name: created_at
                   type: timestamp
@@ -764,12 +950,15 @@ databaseChangeLog:
               - column:
                   name: updated_at
                   type: timestamp
+              - column:
+                  name: processed_at
+                  type: timestamp
         - createIndex:
             indexName: idx_video_status
             tableName: videos
             columns:
               - column:
-                  name: video_status
+                  name: status
         - createIndex:
             indexName: idx_video_uploaded_by
             tableName: videos
@@ -787,14 +976,13 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: video_id
-                  type: bigint
+                  type: uuid
                   constraints:
                     nullable: false
                     unique: true
@@ -839,14 +1027,13 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
                   name: video_id
-                  type: bigint
+                  type: uuid
                   constraints:
                     nullable: false
                     foreignKeyName: fk_thumbnail_video
@@ -1049,8 +1236,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -1064,7 +1250,7 @@ databaseChangeLog:
                     deleteCascade: true
               - column:
                   name: scenario_id
-                  type: bigint
+                  type: uuid
                   constraints:
                     nullable: false
                     foreignKeyName: fk_student_scenario_scenario
@@ -1072,25 +1258,48 @@ databaseChangeLog:
                     deleteCascade: true
               - column:
                   name: status
-                  type: varchar(20)
+                  type: varchar(30)
                   defaultValue: NOT_STARTED
                   constraints:
                     nullable: false
               - column:
-                  name: score
-                  type: integer
-              - column:
-                  name: max_score
-                  type: integer
-              - column:
-                  name: percentage
-                  type: double precision
-              - column:
-                  name: attempts
+                  name: attempt_count
                   type: integer
                   defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
               - column:
-                  name: completion_time_seconds
+                  name: highest_score
+                  type: double precision
+              - column:
+                  name: latest_score
+                  type: double precision
+              - column:
+                  name: average_score
+                  type: double precision
+              - column:
+                  name: total_points_earned
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_possible_points
+                  type: integer
+              - column:
+                  name: time_spent_seconds
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: correct_answers
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_questions
                   type: integer
               - column:
                   name: started_at
@@ -1100,6 +1309,14 @@ databaseChangeLog:
                   type: timestamp
               - column:
                   name: last_accessed_at
+                  type: timestamp
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
                   type: timestamp
         - addUniqueConstraint:
             tableName: student_scenarios
@@ -1128,61 +1345,105 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: student_scenario_id
-                  type: bigint
+                  name: student_id
+                  type: uuid
                   constraints:
                     nullable: false
-                    foreignKeyName: fk_student_answer_student_scenario
-                    references: student_scenarios(id)
-                    deleteCascade: true
               - column:
                   name: question_id
-                  type: bigint
+                  type: uuid
                   constraints:
                     nullable: false
-                    foreignKeyName: fk_student_answer_question
-                    references: questions(id)
               - column:
-                  name: answer_id
-                  type: bigint
+                  name: scenario_id
+                  type: uuid
                   constraints:
-                    foreignKeyName: fk_student_answer_answer
-                    references: answers(id)
+                    nullable: false
               - column:
-                  name: answer_text
-                  type: text
+                  name: student_scenario_id
+                  type: uuid
               - column:
                   name: is_correct
                   type: boolean
+                  constraints:
+                    nullable: false
               - column:
                   name: points_earned
                   type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
               - column:
                   name: time_taken_seconds
                   type: integer
+              - column:
+                  name: hint_used
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: attempt_number
+                  type: integer
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
               - column:
                   name: answered_at
                   type: timestamp
                   constraints:
                     nullable: false
         - createIndex:
+            indexName: idx_student_answer_student
+            tableName: student_answers
+            columns:
+              - column:
+                  name: student_id
+        - createIndex:
             indexName: idx_student_answer_scenario
             tableName: student_answers
             columns:
               - column:
-                  name: student_scenario_id
+                  name: scenario_id
         - createIndex:
             indexName: idx_student_answer_question
             tableName: student_answers
             columns:
               - column:
                   name: question_id
+
+  - changeSet:
+      id: 16b-create-student-answer-selections-table
+      author: vroom-team
+      comment: Create student_answer_selections table for StudentAnswer.selectedAnswerIds element collection
+      changes:
+        - createTable:
+            tableName: student_answer_selections
+            columns:
+              - column:
+                  name: student_answer_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_student_answer_selections_answer
+                    references: student_answers(id)
+                    deleteCascade: true
+              - column:
+                  name: answer_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_student_answer_selections_answer
+            tableName: student_answer_selections
+            columns:
+              - column:
+                  name: student_answer_id
 
   - changeSet:
       id: 17-create-assignments-table
@@ -1194,8 +1455,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  type: bigserial
-                  autoIncrement: true
+                  type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -1204,8 +1464,6 @@ databaseChangeLog:
                   type: uuid
                   constraints:
                     nullable: false
-                    foreignKeyName: fk_assignment_instructor
-                    references: instructors(id)
               - column:
                   name: student_id
                   type: uuid
@@ -1215,24 +1473,19 @@ databaseChangeLog:
                     references: students(id)
                     deleteCascade: true
               - column:
-                  name: scenario_id
-                  type: bigint
+                  name: status
+                  type: varchar(20)
+                  defaultValue: PENDING
                   constraints:
                     nullable: false
-                    foreignKeyName: fk_assignment_scenario
-                    references: scenarios(id)
               - column:
                   name: title
                   type: varchar(200)
-              - column:
-                  name: description
-                  type: text
-              - column:
-                  name: status
-                  type: varchar(20)
-                  defaultValue: ASSIGNED
                   constraints:
                     nullable: false
+              - column:
+                  name: description
+                  type: varchar(1000)
               - column:
                   name: due_date
                   type: timestamp
@@ -1241,22 +1494,19 @@ databaseChangeLog:
                   type: varchar(20)
                   defaultValue: MEDIUM
               - column:
-                  name: assigned_at
+                  name: created_at
                   type: timestamp
                   constraints:
                     nullable: false
               - column:
-                  name: started_at
-                  type: timestamp
-              - column:
-                  name: completed_at
+                  name: updated_at
                   type: timestamp
               - column:
                   name: instructor_notes
-                  type: text
+                  type: varchar(1000)
               - column:
                   name: student_notes
-                  type: text
+                  type: varchar(500)
         - createIndex:
             indexName: idx_assignment_instructor
             tableName: assignments
@@ -1275,6 +1525,36 @@ databaseChangeLog:
             columns:
               - column:
                   name: status
+
+  - changeSet:
+      id: 17b-create-assignment-scenarios-table
+      author: vroom-team
+      comment: Create assignment_scenarios table for Assignment.scenarioIds element collection
+      changes:
+        - createTable:
+            tableName: assignment_scenarios
+            columns:
+              - column:
+                  name: assignment_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_assignment_scenarios_assignment
+                    references: assignments(id)
+                    deleteCascade: true
+              - column:
+                  name: scenario_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_assignment_scenarios_scenario
+                    references: scenarios(id)
+        - createIndex:
+            indexName: idx_assignment_scenarios_assignment
+            tableName: assignment_scenarios
+            columns:
+              - column:
+                  name: assignment_id
 
   - changeSet:
       id: 18-create-learning-paths-table
@@ -1340,14 +1620,14 @@ databaseChangeLog:
             referencedTableName: users
             referencedColumnNames: id
             constraintName: fk_scenario_creator
-            onDelete: SET NULL
+            onDelete: RESTRICT
         - addForeignKeyConstraint:
             baseTableName: videos
             baseColumnNames: uploaded_by
             referencedTableName: users
             referencedColumnNames: id
             constraintName: fk_video_uploader
-            onDelete: SET NULL
+            onDelete: RESTRICT
         - addForeignKeyConstraint:
             baseTableName: learning_paths
             baseColumnNames: created_by

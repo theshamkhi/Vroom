@@ -1,4 +1,4 @@
-.PHONY: up down pull restart logs ps version
+.PHONY: up down pull restart logs ps version clean
 
 IMAGE_TAG ?= master
 
@@ -9,6 +9,9 @@ up:
 
 down:
 	docker compose down
+
+clean:
+	docker compose down -v --remove-orphans
 
 pull:
 	$(SET_TAG) docker compose pull app
@@ -24,8 +27,8 @@ ps:
 
 version:
 	@echo "Checking running version for 'app' service..."
-	@docker inspect --format='{{.Config.Image}}' vroom-app-1
+	@docker inspect --format='{{.Config.Image}}' vroom-app
 	@echo "Image ID (Hash):"
-	@docker inspect --format='{{.Image}}' vroom-app-1
+	@docker inspect --format='{{.Image}}' vroom-app
 	@echo "Created At:"
-	@docker inspect --format='{{.Created}}' vroom-app-1
+	@docker inspect --format='{{.Created}}' vroom-app

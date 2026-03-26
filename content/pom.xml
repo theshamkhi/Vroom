@@ -30,6 +30,10 @@
             <groupId>com.vroom</groupId>
             <artifactId>notification</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.vroom</groupId>
+            <artifactId>media</artifactId>
+        </dependency>
 
         <!-- Spring Boot Web -->
         <dependency>

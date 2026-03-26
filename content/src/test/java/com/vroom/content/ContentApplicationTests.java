@@ -1,5 +1,6 @@
 package com.vroom.content;
 
+import com.vroom.media.service.storage.VideoStorageService;
 import com.vroom.notification.service.EmailService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,6 +13,9 @@ class ContentApplicationTests {
 
     @MockBean
     EmailService emailService;
+
+    @MockBean
+    VideoStorageService videoStorageService;
 
     @Test
     void contextLoads() {

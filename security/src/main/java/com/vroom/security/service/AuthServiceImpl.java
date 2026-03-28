@@ -90,11 +90,18 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User registered successfully: {}", savedUser.getEmail());
 
-        // Generate tokens
-        String accessToken = jwtService.generateToken(savedUser);
-        String refreshToken = jwtService.generateRefreshToken(savedUser);
-
-        return buildAuthResponse(savedUser, accessToken, refreshToken);
+        return AuthResponse.builder()
+                .accessToken(null)
+                .refreshToken(null)
+                .tokenType(null)
+                .expiresIn(0)
+                .userId(savedUser.getId())
+                .email(savedUser.getEmail())
+                .firstName(savedUser.getFirstName())
+                .lastName(savedUser.getLastName())
+                .role(savedUser.getRole())
+                .emailVerified(false)
+                .build();
     }
 
     /**

@@ -40,6 +40,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.url:http://localhost:4200}")
     private String appUrl;
 
+    @Value("${api.url:http://localhost:8080}")
+    private String apiUrl;
+
     /**
      * Send email verification email
      */
@@ -51,7 +54,7 @@ public class EmailServiceImpl implements EmailService {
         try {
             Map<String, Object> variables = new HashMap<>();
             variables.put("userName", userName);
-            variables.put("verificationUrl", appUrl + "/verify-email?token=" + verificationToken);
+            variables.put("verificationUrl", apiUrl + "/api/auth/verify-email?token=" + verificationToken);
             variables.put("appName", appName);
             variables.put("year", LocalDateTime.now().getYear());
 

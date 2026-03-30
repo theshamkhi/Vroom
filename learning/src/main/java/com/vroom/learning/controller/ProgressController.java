@@ -9,7 +9,6 @@ import com.vroom.learning.service.ProgressService;
 import com.vroom.security.model.entity.Student;
 import com.vroom.security.repository.StudentRepository;
 import com.vroom.security.util.SecurityUtils;
-import com.vroom.shared.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -116,13 +115,7 @@ public class ProgressController {
         UUID requesterId = SecurityUtils.getCurrentUserId();
 
         Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
-
-        if (!SecurityUtils.hasRole("ADMIN")) {
-            if (student.getAssignedInstructorId() == null || !student.getAssignedInstructorId().equals(requesterId)) {
-                return ResponseEntity.status(403).<List<ProgressDTO>>build();
-            }
-        }
+                .orElseThrow(() -> new RuntimeException("Student not found with id: " + studentId));
 
         List<ProgressDTO> progress = progressService.getStudentProgress(studentId);
         return ResponseEntity.ok(progress);

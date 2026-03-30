@@ -1,8 +1,11 @@
 package com.vroom.learning.service;
 
+import com.vroom.content.service.BadgeService;
 import com.vroom.content.model.entity.Answer;
 import com.vroom.content.model.entity.Question;
 import com.vroom.content.repository.AnswerRepository;
+import com.vroom.content.repository.BadgeRepository;
+import com.vroom.content.repository.StudentBadgeRepository;
 import com.vroom.content.repository.QuestionRepository;
 import com.vroom.learning.dto.ProgressDTO;
 import com.vroom.learning.dto.SubmitAnswerRequest;
@@ -11,6 +14,8 @@ import com.vroom.learning.model.entity.StudentAnswer;
 import com.vroom.learning.model.entity.StudentScenario;
 import com.vroom.learning.repository.StudentAnswerRepository;
 import com.vroom.learning.repository.StudentScenarioRepository;
+import com.vroom.security.model.entity.Student;
+import com.vroom.security.repository.StudentRepository;
 import com.vroom.shared.exception.ResourceNotFoundException;
 
 import lombok.RequiredArgsConstructor;
@@ -35,6 +40,17 @@ public class ProgressService {
     private final StudentAnswerRepository studentAnswerRepository;
     private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
+
+    private final StudentRepository studentRepository;
+    private final BadgeRepository badgeRepository;
+    private final StudentBadgeRepository studentBadgeRepository;
+    private final BadgeService badgeService;
+
+    private static final String BADGE_POINTS_100 = "Points 100";
+    private static final String BADGE_POINTS_300 = "Points 300";
+    private static final String BADGE_POINTS_600 = "Points 600";
+    private static final String BADGE_POINTS_1000 = "Points 1000";
+    private static final String BADGE_POINTS_1500 = "Points 1500";
 
     /**
      * Start a scenario for a student
@@ -126,8 +142,60 @@ public class ProgressService {
         progress.completeScenario(score, pointsEarned, (int) correctAnswers, (int) totalQuestions);
         progress = studentScenarioRepository.save(progress);
 
+        updateStudentTotalPointsAndAwardPointBadges(studentId);
+
         log.info("Scenario completed successfully");
         return mapToDTO(progress);
+    }
+
+    private void updateStudentTotalPointsAndAwardPointBadges(UUID studentId) {
+        Integer totalPoints = studentScenarioRepository.getTotalPointsByStudent(studentId);
+        if (totalPoints == null) {
+            totalPoints = 0;
+        }
+
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Student", "id", studentId));
+
+        student.setTotalPoints(totalPoints);
+        studentRepository.save(student);
+
+        awardIfThresholdReached(student, totalPoints, 100, BADGE_POINTS_100);
+        awardIfThresholdReached(student, totalPoints, 300, BADGE_POINTS_300);
+        awardIfThresholdReached(student, totalPoints, 600, BADGE_POINTS_600);
+        awardIfThresholdReached(student, totalPoints, 1000, BADGE_POINTS_1000);
+        awardIfThresholdReached(student, totalPoints, 1500, BADGE_POINTS_1500);
+
+        long badgeCount = studentBadgeRepository.countByStudentId(studentId);
+        student.setBadgesEarned((int) badgeCount);
+        studentRepository.save(student);
+    }
+
+    private void awardIfThresholdReached(Student student, int totalPoints, int threshold, String badgeName) {
+        if (totalPoints < threshold) {
+            return;
+        }
+
+        var badgeOpt = badgeRepository.findByName(badgeName);
+        if (badgeOpt.isEmpty()) {
+            log.warn("Points badge '{}' not found in DB. Threshold reached: {} points for student {}", badgeName, totalPoints, student.getId());
+            return;
+        }
+
+        var badge = badgeOpt.get();
+
+        if (studentBadgeRepository.existsByStudentIdAndBadgeId(student.getId(), badge.getId())) {
+            return;
+        }
+
+        badgeService.awardBadgeToStudent(
+                student.getId(),
+                badge.getId(),
+                "Reached " + threshold + " points",
+                null,
+                student.getFullName(),
+                student.getEmail()
+        );
     }
 
     /**

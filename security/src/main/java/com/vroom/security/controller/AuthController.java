@@ -75,8 +75,12 @@ public class AuthController {
      */
     @PostMapping("/resend-verification")
     @Operation(summary = "Resend verification email", description = "Resend email verification link")
-    public ResponseEntity<Map<String, String>> resendVerification(@RequestParam String email) {
+    public ResponseEntity<Map<String, String>> resendVerification(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
         log.info("Resend verification request for: {}", email);
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
         authService.resendVerificationEmail(email);
         return ResponseEntity.ok(Map.of("message", "Verification email sent successfully"));
     }
@@ -86,8 +90,12 @@ public class AuthController {
      */
     @PostMapping({"/forgot-password", "/request-reset"})
     @Operation(summary = "Request password reset", description = "Send password reset link to email")
-    public ResponseEntity<Map<String, String>> forgotPassword(@RequestParam String email) {
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
         log.info("Password reset request for: {}", email);
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
         authService.requestPasswordReset(email);
         return ResponseEntity.ok(Map.of("message", "Password reset email sent successfully"));
     }

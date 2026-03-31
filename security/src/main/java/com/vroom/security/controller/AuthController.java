@@ -84,7 +84,7 @@ public class AuthController {
     /**
      * Request password reset
      */
-    @PostMapping("/forgot-password")
+    @PostMapping({"/forgot-password", "/request-reset"})
     @Operation(summary = "Request password reset", description = "Send password reset link to email")
     public ResponseEntity<Map<String, String>> forgotPassword(@RequestParam String email) {
         log.info("Password reset request for: {}", email);
